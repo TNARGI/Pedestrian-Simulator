@@ -1,0 +1,130 @@
+% Read csv file...
+display("READ CSV FILES");
+positionData = csvread("C:\Users\ExampleUser\Documents\positionData.csv");
+metaData = csvread("C:\Users\ExampleUser\Documents\metaData.csv");
+poiData = csvread("C:\Users\ExampleUser\Documents\poiData.csv");
+blockData = csvread("C:\Users\ExampleUser\Documents\blockData.csv");
+
+
+totalPeople = metaData(1,1);
+totalIterations = metaData(1,2);
+totalPOIs = metaData(1,3);
+totalBlocks = metaData(1,4);
+
+pedLocs = [];
+blockLocs = [];
+poiLocs = [];
+
+deltaTime = 0.03; % Should be 0.03 for iterations of 200ms
+canvasScale = 60;
+
+
+
+
+%%% Set up coordinate system to move object in...
+display("SET UP COORDINATE SYSTEM");
+axis equal
+xlim([-canvasScale/10 (canvasScale + canvasScale/10)]);
+ylim([-canvasScale/10 (canvasScale + canvasScale/10)]);
+
+
+
+%%% Format Wall Data
+display("FORMAT WALL DATA");
+blockCounter = 1;
+while(blockCounter < totalBlocks*2)
+
+  x = blockData(1, blockCounter);
+  y = blockData(1, blockCounter +1);
+
+  loc = [x,y];
+
+  blockLocs = [[blockLocs]; [loc];];
+
+  blockCounter = blockCounter +2;
+end
+
+%%% Plot Wall Data
+display("PLOT WALL DATA");
+plot(blockLocs(:,1), blockLocs(:,2), 's', 'MarkerEdgeColor', 'r', 'MarkerFaceColor','r', 'MarkerSize', 11);
+hold on;
+
+
+
+%%%Format POI Data
+display("FORMAT POI DATA");
+poiCounter = 1;
+while(poiCounter < totalPOIs*2)
+
+  x = poiData(1, poiCounter);
+  y = poiData(1, poiCounter +1);
+
+  loc = [x,y];
+  poiLocs = [[poiLocs]; [loc];];
+
+  poiCounter = poiCounter +2;
+end
+
+%%% Plot POI Data
+display("PLOT POI DATA");
+plot(poiLocs(:,1), poiLocs(:,2), 's', 'MarkerEdgeColor', 'g', 'MarkerFaceColor','g', 'MarkerSize', 7);
+hold on;
+
+
+
+%%% Format Pedestrian Data
+display("FORMAT PEDESTRIAN DATA");
+iterMod = 0;
+iterCounter = 1;
+while(iterCounter <= totalIterations)
+
+  columnPos = 1;
+  while(columnPos < totalPeople*2)
+
+    if size(positionData,1) > size(positionData,2)
+      x = positionData(columnPos + iterMod, 1);
+      y = positionData(columnPos +1 + iterMod, 1);
+    else
+      x = positionData(1, columnPos + iterMod);
+      y = positionData(1, columnPos +1 + iterMod);
+    end
+
+    loc = [x,y];
+    pedLocs = [[pedLocs]; [loc];];
+
+    columnPos = columnPos +2;
+  end
+
+  iterCounter = iterCounter +1;
+  iterMod = iterMod + (totalPeople*2);
+end
+
+
+
+
+
+
+
+%%% Animate pedestrian data
+display("ANIMATE PEDESTRIAN DATA");
+iteration = 1;
+personMod = 0;
+while(iteration<=totalIterations)
+  t_loopstart = tic();
+
+  x = pedLocs(personMod +1 : personMod+totalPeople, 1);
+  y = pedLocs(personMod +1 : personMod+totalPeople, 2);
+
+  a = plot(x, y, 's', 'MarkerEdgeColor', 'k', 'MarkerFaceColor','k', 'MarkerSize', 7, 'MarkerSize',3);
+
+  %daspect([1,1,1]);
+
+  %Pausing animation
+  el_time=toc(t_loopstart);
+  pause(deltaTime-el_time);
+
+  set(a,'Visible','off');
+
+  personMod = personMod + totalPeople;
+  iteration=iteration+1;
+end
